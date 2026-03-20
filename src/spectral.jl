@@ -41,9 +41,23 @@ end
 """
     optimize_spectral(H::AbstractMatrix, strings::Vector{<:SparseMatrixCSC}, iterations::Int; verbose=false)
 
-Return a U such that U*H*U' is supported on the set of strings.
-Minimize the cost function ||E - E0||^2, where E are the eigenvalues of U*H*U' and E0 are the eigenvalues of H.
-https://www.pnas.org/doi/10.1073/pnas.2308006120
+Find a unitary `U` such that `U*H*U'` is supported on the given set of `strings`.
+
+# Arguments
+- `H::AbstractMatrix`: the input Hamiltonian matrix.
+- `strings::Vector{<:SparseMatrixCSC}`: the set of strings defining the target support.
+- `iterations::Int`: number of optimization iterations.
+- `verbose=false`: if `true`, print progress information.
+
+# Returns
+- `U`: a unitary matrix such that `U*H*U'` is supported on `strings`.
+
+# Details
+Minimizes the cost function `||E - E0||²`, where `E` are the eigenvalues of `U*H*U'`
+and `E0` are the eigenvalues of `H`.
+
+# References
+- [https://www.pnas.org/doi/10.1073/pnas.2308006120](https://www.pnas.org/doi/10.1073/pnas.2308006120)
 """
 function optimize_spectral(H::AbstractMatrix, strings::Vector{<:SparseMatrixCSC}, iterations::Int;
                     verbose=false)
