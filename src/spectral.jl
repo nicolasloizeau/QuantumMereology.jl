@@ -41,11 +41,11 @@ end
 """
     optimize_spectral(H::AbstractMatrix, strings::Vector{<:SparseMatrixCSC}, iterations::Int; verbose=false)
 
-Find a unitary `U` such that `U*H*U'` is supported on the given set of `strings`.
+Find a unitary `U` such that `U*H*U'` is supported on the given set of Pauli `strings`.
 
 # Arguments
 - `H::AbstractMatrix`: the input Hamiltonian matrix.
-- `strings::Vector{<:SparseMatrixCSC}`: the set of strings defining the target support.
+- `strings::Vector{<:SparseMatrixCSC}`: the set of Pauli strings defining the target support.
 - `iterations::Int`: number of optimization iterations.
 - `verbose=false`: if `true`, print progress information.
 
@@ -63,7 +63,7 @@ function optimize_spectral(H::AbstractMatrix, strings::Vector{<:SparseMatrixCSC}
                     verbose=false)
     @assert ishermitian(H) "H must be Hermitian"
     E, U = eigen(Hermitian(H))
-    V = optimize_spectral(E, strings, iterations; noise=noise, verbose=verbose)
+    V = optimize_spectral(E, strings, iterations; verbose=verbose)
     return V*U'
 end
 

@@ -10,7 +10,7 @@ PauliStrings = "f07625cc-80e4-4099-a362-36a3484d9bcc"
 SparseArrays = "2f01184e-e22b-5df5-ae63-d93ebab69eaf"
 
 [compat]
-LinearAlgebra = "1.11.0"
+LinearAlgebra = "1.10.0"
 Optim = "2.0.1"
 PauliStrings = "1.9.2"
 SparseArrays = "1.10.0"
