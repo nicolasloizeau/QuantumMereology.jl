@@ -1,5 +1,7 @@
 
 using SparseArrays
+using Optim
+using LinearAlgebra
 
 function buildH(h::Vector, strings::Vector{<:SparseMatrixCSC})
     H = zeros(ComplexF64, size(strings[1]))
@@ -31,4 +33,40 @@ function gradient_spectral(h::Vector{<:Number}, strings::Vector{<:SparseMatrixCS
         grad[i] = 2 * (h[i] * 2^N - contrib)
     end
     return real.(grad)
+end
+
+
+function optimize_spectral(H::AbstractMatrix, strings::Vector{<:SparseMatrixCSC}, iterations::Int;
+                    noise=1e-12,
+                    verbose=false)
+    @assert ishermitian(H) "H must be Hermitian"
+    E, U = eigen(Hermitian(H))
+    V = optimize_spectral(E, strings, iterations; noise=noise, verbose=verbose)
+    return V*U'
+end
+
+
+function optimize_spectral(E::Vector{<:Number}, strings::Vector{<:SparseMatrixCSC}, iterations::Int;
+                    noise=1e-12,
+                    verbose=false,
+                    h = (rand(length(strings)).-0.5)/ length(strings))
+    cost(h) = cost_spectral(h, strings, E)
+    function grad!(G,h)
+        G .= gradient_spectral(h, strings, E)
+    end
+    function callback(state)
+        verbose && println("Cost: ", state.f_x)
+        return false
+    end
+    result = optimize(cost, grad!, h, BFGS(),
+        Optim.Options(
+            f_abstol = 0.0,
+            x_abstol = 0.0,
+            g_tol = 0.0,
+            iterations = iterations,
+            callback = callback
+        ))
+    Hp = buildH(result.minimizer, strings)
+    Ep, U = eigen(Hermitian(Hp))
+    return U
 end
