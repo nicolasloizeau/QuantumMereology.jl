@@ -36,8 +36,16 @@ function gradient_spectral(h::Vector{<:Number}, strings::Vector{<:SparseMatrixCS
 end
 
 
+
+
+"""
+    optimize_spectral(H::AbstractMatrix, strings::Vector{<:SparseMatrixCSC}, iterations::Int; verbose=false)
+
+Return a U such that U*H*U' is supported on the set of strings.
+Minimize the cost function ||E - E0||^2, where E are the eigenvalues of U*H*U' and E0 are the eigenvalues of H.
+https://www.pnas.org/doi/10.1073/pnas.2308006120
+"""
 function optimize_spectral(H::AbstractMatrix, strings::Vector{<:SparseMatrixCSC}, iterations::Int;
-                    noise=1e-12,
                     verbose=false)
     @assert ishermitian(H) "H must be Hermitian"
     E, U = eigen(Hermitian(H))
@@ -47,7 +55,6 @@ end
 
 
 function optimize_spectral(E::Vector{<:Number}, strings::Vector{<:SparseMatrixCSC}, iterations::Int;
-                    noise=1e-12,
                     verbose=false,
                     h = (rand(length(strings)).-0.5)/ length(strings))
     cost(h) = cost_spectral(h, strings, E)
