@@ -9,7 +9,31 @@ function cost_unitary(H::AbstractMatrix, strings::Vector, U::AbstractMatrix)
 end
 
 
+function cost_unitary2(H::AbstractMatrix, strings::Vector, G::AbstractMatrix)
+    com1 = G*H - H*G
+    com2 = G*com1 - com1*G
+    Hp = H + im*com1
+    D = projection(Hp, strings)
+    return -norm(D)^2
+end
+
+
 buildU(g, strings) = exp(im*buildH(g, strings))
+
+
+
+
+
+function buildA(H, Gstrings, strings)
+    A = zeros(ComplexF64, length(Gstrings), length(strings))
+    for (k, Gk) in enumerate(Gstrings)
+        com = Gk*H - H*Gk
+        for (j, Pj) in enumerate(strings)
+            A[k, j] = trace_product(com, Pj)
+        end
+    end
+    return A
+end
 
 
 function optimize_unitary(H::AbstractMatrix, strings::Vector{<:SparseMatrixCSC}, iterations::Int;
