@@ -21,28 +21,38 @@ function gradient_flow(H, strings, Gstrings)
 end
 
 
-function optimize_flow(H, strings, Gstrings, iterations; verbose=false, step=0.01, max_ls=5)
+
+function line_search(H, g, strings, step, buildU)
+    Ui = I
+    for _ in 1:5
+        Ui = buildU(step * g)
+        H_new = Ui * H * Ui'
+        if norm(projection(H_new, strings)) > norm(projection(H, strings))
+            H = H_new
+            break  # accept step
+        else
+            step *= 0.5  # shrink step
+        end
+    end
+    return H, Ui, step
+end
+
+"""
+buildU is a functiont that takes a vector of coefficients and return the unitary step.
+"""
+function optimize_flow(H::AbstractMatrix, strings, Gstrings, iterations; verbose=false, step=0.01, buildU=nothing, noise=1e-3)
     U = I
-    v = zeros(length(Gstrings))
+    g = rand(length(Gstrings)).-0.5
+    if buildU === nothing
+        buildU = g -> exp(-im * buildH(g, Gstrings))
+    end
     for i in 1:iterations
         g = -gradient_flow(H, strings, Gstrings)
         g /= norm(g) + 1e-12
-        # line search
-        α = step
-        for _ in 1:max_ls
-            G = buildH(α * g, Gstrings)
-            Ui = exp(-im * G)
-            H_new = Ui * H * Ui'
-            cost_new = -norm(projection(H_new, strings))
-            cost_old = -norm(projection(H, strings))
-            if cost_new < cost_old
-                H = H_new
-                U = Ui * U
-                break  # accept step
-            else
-                α *= 0.5  # shrink step
-            end
-        end
+        g += (rand(length(g)).-0.5) * noise
+        H, Ui, step = line_search(H, g, strings, step, buildU)
+        step *= 1.2
+        U = Ui * U
         verbose && println("Iteration $i, cost: ", norm(H) - norm(projection(H, strings)))
     end
     return U

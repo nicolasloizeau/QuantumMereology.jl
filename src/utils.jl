@@ -4,6 +4,14 @@ using SparseArrays
 using PauliStrings
 
 
+function buildH(h::Vector, strings::Vector{<:SparseMatrixCSC})
+    H = zeros(ComplexF64, size(strings[1]))
+    for (coeff, P) in zip(h, strings)
+        H .+= coeff * P
+    end
+    return H
+end
+
 function gradient(h::Vector{<:Number}, f::Function; d = 1e-6)
     grad = zeros(promote_type(eltype(h), Float64), length(h))
     dh = similar(h)

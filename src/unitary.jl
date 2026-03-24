@@ -18,10 +18,6 @@ function cost_unitary2(H::AbstractMatrix, strings::Vector, G::AbstractMatrix)
 end
 
 
-buildU(g, strings) = exp(im*buildH(g, strings))
-
-
-
 
 
 function buildA(H, Gstrings, strings)
@@ -45,6 +41,7 @@ function optimize_unitary(H::AbstractMatrix, strings::Vector{<:SparseMatrixCSC},
         Gstrings = sparse.(complete_basis(N))
     end
     g0 = (rand(length(Gstrings)).-0.5)*2
+    buildU(g, strings) = exp(im*buildH(g, strings))
     cost(g) = cost_unitary(H, strings, buildU(g, Gstrings))
     function callback(state)
         verbose && println("Cost: ", norm(H)+state.f_x)

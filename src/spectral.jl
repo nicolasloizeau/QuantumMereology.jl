@@ -3,13 +3,6 @@ using SparseArrays
 using Optim
 using LinearAlgebra
 
-function buildH(h::Vector, strings::Vector{<:SparseMatrixCSC})
-    H = zeros(ComplexF64, size(strings[1]))
-    for (coeff, P) in zip(h, strings)
-        H .+= coeff * P
-    end
-    return H
-end
 
 
 function cost_spectral(h::Vector{<:Number}, strings::Vector{<:SparseMatrixCSC}, E0::Vector{<:Number})
