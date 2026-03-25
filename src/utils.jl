@@ -12,6 +12,13 @@ function buildH(h::Vector, strings::Vector{<:SparseMatrixCSC})
     return H
 end
 
+function buildH(h::Vector, strings::Vector{<:PauliString})
+    h = complex.(h)
+    H = Operator(strings, h)
+    set_coeffs(H, h)
+    return Matrix(H)
+end
+
 function gradient(h::Vector{<:Number}, f::Function; d = 1e-6)
     grad = zeros(promote_type(eltype(h), Float64), length(h))
     dh = similar(h)
@@ -32,7 +39,7 @@ function projection_coefficients(H::AbstractMatrix, strings::Vector)
     return coeffs
 end
 
-function projection(H::AbstractMatrix, strings::Vector)
+function projection(H::AbstractMatrix, strings::Vector{<:SparseMatrixCSC})
     Hp = zeros(eltype(H), size(H))
     for P in strings
         Hp .+= trace_product(H , P) * P
@@ -40,9 +47,22 @@ function projection(H::AbstractMatrix, strings::Vector)
     return Hp / size(H, 1)
 end
 
+function projection(H::AbstractMatrix, strings::Vector{<:PauliString})
+    Hp = zeros(eltype(H), size(H))
+    for P in strings
+        Hp += trace_product(H , P) * sparse(P)
+    end
+    return Hp / size(H, 1)
+end
+
+
 
 function PauliStrings.trace_product(A::AbstractMatrix, B::AbstractMatrix)
     return tr(A*B)
+end
+
+function PauliStrings.trace_product(A::AbstractMatrix, B::PauliString)
+    return tr(A*sparse(B))
 end
 
 function PauliStrings.trace_product(A::AbstractMatrix, B::SparseMatrixCSC)

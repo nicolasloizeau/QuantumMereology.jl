@@ -1,13 +1,20 @@
 
+function commutator(A, B)
+    return A * B - B * A
+end
+
 
 function gradient_flow(H, strings, Gstrings)
+    if typeof(strings[1]) <: PauliString
+        H = Operator(H)
+    end
     A = zeros(ComplexF64, length(strings))
     B = zeros(ComplexF64, length(Gstrings), length(strings))
     for (j, Pj) in enumerate(strings)
         A[j] = trace_product(H, Pj)
     end
     for (k, Gk) in enumerate(Gstrings)
-        com = Gk*H - H*Gk
+        com = commutator(Gk, H)
         for (j, Pj) in enumerate(strings)
             B[k, j] = trace_product(com, Pj)
         end
@@ -15,7 +22,7 @@ function gradient_flow(H, strings, Gstrings)
     g = real.(2*im*B*A)
     # preconditioner
     for (k, Gk) in enumerate(Gstrings)
-        g[k] /= norm(Gk*H-H*Gk) + 1e-8
+        g[k] /= norm(commutator(Gk, H)) + 1e-8
     end
     return g
 end
