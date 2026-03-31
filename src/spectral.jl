@@ -52,17 +52,22 @@ and `E0` are the eigenvalues of `H`.
 - [https://www.pnas.org/doi/10.1073/pnas.2308006120](https://www.pnas.org/doi/10.1073/pnas.2308006120)
 """
 function optimize_spectral(H::AbstractMatrix, strings::Vector{<:Union{SparseMatrixCSC, PauliString}}, iterations::Int;
-                    verbose=false)
+                    verbose=false,
+                    returnh=false)
     @assert ishermitian(H) "H must be Hermitian"
     E, U = eigen(Hermitian(H))
-    V = optimize_spectral(E, strings, iterations; verbose=verbose)
-    return V*U'
+    res = optimize_spectral(E, strings, iterations; verbose=verbose, returnh=returnh)
+    if returnh
+        return res
+    end
+    return res*U'
 end
 
 
 function optimize_spectral(E::Vector{<:Number}, strings::Vector{<:Union{SparseMatrixCSC, PauliString}}, iterations::Int;
                     verbose=false,
-                    h = (rand(length(strings)).-0.5)/ length(strings))
+                    h = (rand(length(strings)).-0.5)/ length(strings),
+                    returnh=false)
     cost(h) = cost_spectral(h, strings, E)
     function grad!(G,h)
         G .= gradient_spectral(h, strings, E)
@@ -73,12 +78,15 @@ function optimize_spectral(E::Vector{<:Number}, strings::Vector{<:Union{SparseMa
     end
     result = optimize(cost, grad!, h, BFGS(),
         Optim.Options(
-            f_abstol = 0.0,
+            f_abstol = 1e-8,
             x_abstol = 0.0,
             g_tol = 0.0,
             iterations = iterations,
             callback = callback
         ))
+    if returnh
+        return result.minimizer
+    end
     Hp = buildH(result.minimizer, strings)
     Ep, U = eigen(Hermitian(Hp))
     return U

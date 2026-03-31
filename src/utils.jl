@@ -12,6 +12,31 @@ function buildH(h::Vector, strings::Vector{<:SparseMatrixCSC})
     return H
 end
 
+
+
+# function buildH(h::AbstractVector, taus::Vector{<:SparseMatrixCSC})
+#     @assert !isempty(taus) "taus must be non-empty"
+#     @assert length(taus) == length(h) "taus and h must have same length"
+
+#     d1, d2 = size(taus[1])
+#     H = zeros(ComplexF64, d1, d2)
+
+#     @inbounds for i in eachindex(taus)
+#         A = taus[i]
+#         @assert size(A) == (d1, d2) "all taus must have same shape"
+
+#         rows = rowvals(A)
+#         vals = nonzeros(A)
+#         for col in 1:size(A, 2)
+#             for p in nzrange(A, col)
+#                 H[rows[p], col] += h[i] * vals[p]
+#             end
+#         end
+#     end
+#     return H
+# end
+
+
 function buildH(h::Vector, strings::Vector{<:PauliString})
     h = complex.(h)
     H = Operator(strings, h)
