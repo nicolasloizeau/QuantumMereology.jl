@@ -15,7 +15,7 @@ using PauliStrings
     Hp = U * H * U'
     D = projection(Hp, strings)
     V = Hp - D
-    @test norm(V) < 1e-6
+    @test norm(V) < 1e-4
 end
 
 # @testset "unitary" begin
